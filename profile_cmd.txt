@@ -1,2 +1,2 @@
-wpr -start CPU -start D:\src\onnxruntime\test1.wprp -setprofint 2000
+wpr -start CPU -start C:\src\onnxruntime\ort.wprp -setprofint 2000
 wpr -stop 1.etl
