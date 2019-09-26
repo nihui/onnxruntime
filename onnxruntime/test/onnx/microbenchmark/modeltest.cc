@@ -5,6 +5,7 @@
 #include <core/graph/model.h>
 #include <core/framework/path_lib.h>
 #include <core/session/onnxruntime_c_api.h>
+#include <core/session/onnxruntime_cxx_api.h>
 #include "providers.h"
 
 static void BM_LoadModel(benchmark::State& state) {
@@ -26,8 +27,8 @@ extern OrtEnv* env;
   do {                                                      \
     OrtStatus* onnx_status = (expr);                        \
     if (onnx_status != NULL) {                              \
-      state.SkipWithError(OrtGetErrorMessage(onnx_status)); \
-      OrtReleaseStatus(onnx_status);                        \
+      state.SkipWithError(Ort::g_api->GetErrorMessage(onnx_status)); \
+      Ort::g_api->ReleaseStatus(onnx_status);                        \
     }                                                       \
   } while (0);
 
@@ -35,10 +36,10 @@ extern OrtEnv* env;
 static void BM_CreateSession_WithGPU(benchmark::State& state) {
   const char* model_path = "../models/opset8/test_bvlc_alexnet/model.onnx";
   OrtSessionOptions* session_option = OrtCreateSessionOptions();
-  ORT_BREAK_ON_ERROR(OrtSessionOptionsAppendExecutionProvider_CUDA(session_option, 0));
+  ORT_BREAK_ON_ERROR(Ort::g_api->SessionOptionsAppendExecutionProvider_CUDA(session_option, 0));
   for (auto _ : state) {
     OrtSession* session;
-    ORT_BREAK_ON_ERROR(OrtCreateSession(env, model_path, session_option, &session));
+    ORT_BREAK_ON_ERROR(Ort::g_api->CreateSession(env, model_path, session_option, &session));
     state.PauseTiming();
     OrtReleaseSession(session);
     state.ResumeTiming();
@@ -51,14 +52,14 @@ BENCHMARK(BM_CreateSession_WithGPU);
 static void BM_CreateSession(benchmark::State& state) {
   const ORTCHAR_T* model_path = ORT_TSTR("../models/opset8/test_bvlc_alexnet/model.onnx");
   OrtSessionOptions* session_option;
-  ORT_BREAK_ON_ERROR(OrtCreateSessionOptions(&session_option));
+  ORT_BREAK_ON_ERROR(Ort::g_api->CreateSessionOptions(&session_option));
   for (auto _ : state) {
     OrtSession* session;
-    ORT_BREAK_ON_ERROR(OrtCreateSession(env, model_path, session_option, &session));
+    ORT_BREAK_ON_ERROR(Ort::g_api->CreateSession(env, model_path, session_option, &session));
     state.PauseTiming();
-    OrtReleaseSession(session);
+    Ort::g_api->ReleaseSession(session);
     state.ResumeTiming();
   }
-  OrtReleaseSessionOptions(session_option);
+  Ort::g_api->ReleaseSessionOptions(session_option);
 }
 BENCHMARK(BM_CreateSession);

@@ -12,8 +12,11 @@
 #include <core/graph/graph.h>
 #include <core/framework/kernel_def_builder.h>
 #include <core/session/onnxruntime_c_api.h>
+#include <core/session/onnxruntime_cxx_api.h>
 #include <unordered_map>
 
+
+const OrtApi* Ort::g_api = OrtGetApi(ORT_API_VERSION);
 using namespace onnxruntime;
 
 static void BM_CPUAllocator(benchmark::State& state) {
@@ -53,9 +56,9 @@ BENCHMARK(BM_ResolveGraph);
   do {                                                   \
     OrtStatus* onnx_status = (expr);                     \
     if (onnx_status != NULL) {                           \
-      const char* msg = OrtGetErrorMessage(onnx_status); \
+      const char* msg = Ort::g_api->GetErrorMessage(onnx_status); \
       fprintf(stderr, "%s\n", msg);                      \
-      OrtReleaseStatus(onnx_status);                     \
+      Ort::g_api->ReleaseStatus(onnx_status);                     \
       abort();                                           \
     }                                                    \
   } while (0);
@@ -65,8 +68,8 @@ OrtEnv* env = nullptr;
 int main(int argc, char** argv) {
   ::benchmark::Initialize(&argc, argv);
   if (::benchmark::ReportUnrecognizedArguments(argc, argv)) return -1;
-  ORT_ABORT_ON_ERROR(OrtCreateEnv(ORT_LOGGING_LEVEL_WARNING, "test", &env));
+  ORT_ABORT_ON_ERROR(Ort::g_api->CreateEnv(ORT_LOGGING_LEVEL_WARNING, "test", &env));
   ::benchmark::RunSpecifiedBenchmarks();
-  OrtReleaseEnv(env);
+  Ort::g_api->ReleaseEnv(env);
   return 0;
 }
