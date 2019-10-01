@@ -215,7 +215,7 @@ OrtStatus* CreateTensorImpl(const int64_t* shape, size_t shape_len, const OrtMem
     }
     return OrtApis::CreateStatus(ORT_INVALID_ARGUMENT, oss.str().c_str());
   }
-  *out = onnxruntime::make_unique<Tensor>(DataTypeImpl::GetType<T>(), onnxruntime::TensorShape(shapes), p_data, *info);
+  *out = onnxruntime::make_unique<Tensor>(DataTypeImpl::GetType<T>(), tensor_shape, p_data, *info);
   return nullptr;
 }
 
